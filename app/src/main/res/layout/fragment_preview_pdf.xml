@@ -24,21 +24,19 @@
     tools:background="@color/previewBackground"
     tools:context=".ui.fileList.preview.PreviewPDFFragment">
 
-    <com.infomaniak.drive.utils.PinchToZoomRecyclerView
-        android:id="@+id/pdfViewRecycler"
+    <com.github.barteksc.pdfviewer.PDFView
+        android:id="@+id/pdfView"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:background="@color/previewBackground"
         android:clipToPadding="false"
         android:orientation="vertical"
         android:paddingHorizontal="@dimen/marginStandardMedium"
         android:paddingVertical="@dimen/recyclerViewPaddingBottom"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:itemCount="7"
-        tools:listitem="@layout/item_pdfview" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <include
         android:id="@+id/downloadLayout"
