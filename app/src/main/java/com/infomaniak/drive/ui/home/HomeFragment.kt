@@ -24,9 +24,10 @@ import android.view.ViewGroup
 import androidx.core.view.*
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import com.google.android.material.appbar.AppBarLayout
 import com.infomaniak.drive.R
 import com.infomaniak.drive.data.cache.DriveInfosController
 import com.infomaniak.drive.data.models.UiSettings
@@ -48,6 +49,7 @@ import kotlinx.android.synthetic.main.activity_main.bottomNavigation
 import kotlinx.android.synthetic.main.fragment_home.*
 import kotlinx.android.synthetic.main.item_search_view.searchView
 import kotlinx.android.synthetic.main.item_search_view.searchViewText
+import kotlinx.coroutines.launch
 
 class HomeFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
 
@@ -99,9 +101,7 @@ class HomeFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
 
         homeSwipeRefreshLayout?.apply {
             setOnRefreshListener(this@HomeFragment)
-            appBarLayout.addOnOffsetChangedListener(AppBarLayout.OnOffsetChangedListener { _, verticalOffset ->
-                isEnabled = verticalOffset == 0
-            })
+            appBarLayout.addOnOffsetChangedListener { _, verticalOffset -> isEnabled = verticalOffset == 0 }
         }
 
         homeUploadFileInProgress.setUploadFileInProgress(R.string.uploadInProgressTitle) {
@@ -115,9 +115,11 @@ class HomeFragment : Fragment(), SwipeRefreshLayout.OnRefreshListener {
             }
         }
 
-        lifecycleScope.launchWhenResumed {
-            setup(homeViewPager, tabsHomeGroup, tabsHome) { UiSettings(requireContext()).lastHomeSelectedTab = it }
-            homeViewPager.setCurrentItem(UiSettings(requireContext()).lastHomeSelectedTab, false)
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                setup(homeViewPager, tabsHomeGroup, tabsHome) { UiSettings(requireContext()).lastHomeSelectedTab = it }
+                homeViewPager.setCurrentItem(UiSettings(requireContext()).lastHomeSelectedTab, false)
+            }
         }
 
         appBarLayout.addOnOffsetChangedListener { _, verticalOffset ->
