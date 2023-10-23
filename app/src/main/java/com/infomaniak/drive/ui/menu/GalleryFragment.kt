@@ -36,6 +36,7 @@ import com.infomaniak.drive.R
 import com.infomaniak.drive.data.models.BulkOperationType
 import com.infomaniak.drive.data.models.File
 import com.infomaniak.drive.data.services.DownloadWorker
+import com.infomaniak.drive.databinding.FragmentGalleryBinding
 import com.infomaniak.drive.databinding.FragmentMenuGalleryBinding
 import com.infomaniak.drive.databinding.MultiSelectLayoutBinding
 import com.infomaniak.drive.ui.fileList.multiSelect.MultiSelectFragment
@@ -45,18 +46,18 @@ import com.infomaniak.drive.utils.getAdjustedColumnNumber
 import com.infomaniak.drive.views.NoItemsLayoutView
 import com.infomaniak.lib.core.utils.Utils.createRefreshTimer
 import com.infomaniak.lib.core.utils.setPagination
-import kotlinx.android.synthetic.main.fragment_gallery.galleryFastScroller
-import kotlinx.android.synthetic.main.fragment_gallery.galleryRecyclerView
-import kotlinx.android.synthetic.main.fragment_gallery.noGalleryLayout
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 class GalleryFragment : MultiSelectFragment(MATOMO_CATEGORY), NoItemsLayoutView.INoItemsLayoutView {
 
+    private var _binding: FragmentGalleryBinding? = null
+    private val binding get() = _binding!! // This property is only valid between onCreateView and onDestroyView
+
     override val noItemsIcon = R.drawable.ic_images
     override val noItemsTitle = R.string.picturesNoFile
-    override val noItemsInitialListView: View by lazy { galleryFastScroller }
+    override val noItemsInitialListView: View by lazy { binding.galleryFastScroller }
 
     private val galleryViewModel: GalleryViewModel by viewModels()
     private lateinit var galleryAdapter: GalleryAdapter
@@ -70,8 +71,8 @@ class GalleryFragment : MultiSelectFragment(MATOMO_CATEGORY), NoItemsLayoutView.
         createRefreshTimer { menuGalleryBinding?.swipeRefreshLayout?.isRefreshing = true }
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_gallery, container, false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        return FragmentGalleryBinding.inflate(inflater, container, false).also { _binding = it }.root
     }
 
     override fun initMultiSelectLayout(): MultiSelectLayoutBinding? = menuGalleryBinding?.multiSelectLayout
@@ -111,10 +112,10 @@ class GalleryFragment : MultiSelectFragment(MATOMO_CATEGORY), NoItemsLayoutView.
 
         if (isCurrentlyInGallery) multiSelectManager.isMultiSelectAuthorized = true
 
-        galleryRecyclerView.adapter = galleryAdapter
+        binding.galleryRecyclerView.adapter = galleryAdapter
         configGalleryLayoutManager()
 
-        noGalleryLayout.iNoItemsLayoutView = this
+        binding.noGalleryLayout.iNoItemsLayoutView = this@GalleryFragment
 
         mainViewModel.observeDownloadOffline(requireContext()).observe(viewLifecycleOwner) { workInfoList ->
             if (workInfoList.isEmpty()) return@observe
@@ -136,19 +137,24 @@ class GalleryFragment : MultiSelectFragment(MATOMO_CATEGORY), NoItemsLayoutView.
         observeApiResultPagination()
     }
 
-    private fun observeApiResultPagination() = with(galleryAdapter) {
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+
+    private fun observeApiResultPagination() = with(binding) {
         galleryViewModel.galleryApiResult.observe(viewLifecycleOwner) {
             it?.let { (galleryFiles, isComplete) ->
-                stateRestorationPolicy = RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
-                val galleryList = formatList(galleryFiles)
-                galleryRecyclerView.post { addAll(galleryList) }
-                this.isComplete = isComplete
+                galleryAdapter.stateRestorationPolicy = RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
+                val galleryList = galleryAdapter.formatList(galleryFiles)
+                galleryRecyclerView.post { galleryAdapter.addAll(galleryList) }
+                galleryAdapter.isComplete = isComplete
                 noGalleryLayout.toggleVisibility(galleryList.isEmpty())
             } ?: run {
-                isComplete = true
+                galleryAdapter.isComplete = true
                 noGalleryLayout.toggleVisibility(
                     noNetwork = mainViewModel.isInternetAvailable.value == false,
-                    isVisible = galleryList.isEmpty(),
+                    isVisible = galleryAdapter.galleryList.isEmpty(),
                     showRefreshButton = true,
                 )
             }
@@ -160,7 +166,7 @@ class GalleryFragment : MultiSelectFragment(MATOMO_CATEGORY), NoItemsLayoutView.
     }
 
     private fun setupPagination() {
-        galleryRecyclerView.apply {
+        binding.galleryRecyclerView.apply {
             paginationListener?.let(::removeOnScrollListener)
             paginationListener = setPagination(
                 whenLoadMoreIsPossible = {
@@ -195,7 +201,7 @@ class GalleryFragment : MultiSelectFragment(MATOMO_CATEGORY), NoItemsLayoutView.
             }
         }
 
-        galleryRecyclerView?.layoutManager = gridLayoutManager
+        _binding?.galleryRecyclerView?.layoutManager = gridLayoutManager
     }
 
     private fun loadMoreGallery(driveId: Int, forceDownload: Boolean = false) {
@@ -296,7 +302,7 @@ class GalleryFragment : MultiSelectFragment(MATOMO_CATEGORY), NoItemsLayoutView.
     }
 
     fun setScrollbarTrackOffset(offset: Int) {
-        galleryFastScroller?.trackMarginEnd = offset
+        _binding?.galleryFastScroller?.trackMarginEnd = offset
     }
 
     companion object {
