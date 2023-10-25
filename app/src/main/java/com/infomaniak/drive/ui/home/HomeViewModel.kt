@@ -24,8 +24,6 @@ import androidx.lifecycle.viewModelScope
 import com.infomaniak.drive.data.api.ApiRepository
 import com.infomaniak.drive.data.cache.FileController
 import com.infomaniak.drive.data.models.FileActivity
-import com.infomaniak.lib.core.models.ApiResponse
-import com.infomaniak.lib.core.models.ApiResponseStatus.SUCCESS
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.ensureActive
@@ -170,7 +168,7 @@ class HomeViewModel : ViewModel() {
                 previousActivity.action == currentActivity.action &&
                 previousActivity.fileId == currentActivity.fileId
     }
-
+    
     data class LastActivityResult(
         val mergedActivities: ArrayList<FileActivity>,
         val isComplete: Boolean,
