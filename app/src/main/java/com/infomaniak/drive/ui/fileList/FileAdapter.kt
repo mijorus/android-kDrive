@@ -29,6 +29,8 @@ import androidx.core.view.isGone
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerView.AdapterDataObserver
+import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import androidx.viewbinding.ViewBinding
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
@@ -51,7 +53,6 @@ import com.infomaniak.lib.core.databinding.ItemLoadingBinding
 import com.infomaniak.lib.core.utils.context
 import com.infomaniak.lib.core.utils.toPx
 import com.infomaniak.lib.core.views.LoaderAdapter.Companion.VIEW_TYPE_LOADING
-import com.infomaniak.lib.core.views.ViewHolder
 import io.realm.OrderedRealmCollection
 import io.realm.Realm
 import io.realm.RealmList
@@ -80,9 +81,9 @@ open class FileAdapter(
 
     private var pendingWifiConnection = false
     private var showLoading = false
-    private var fileAdapterObserver: RecyclerView.AdapterDataObserver? = null
+    private var fileAdapterObserver: AdapterDataObserver? = null
 
-    private fun createFileAdapterObserver(recyclerView: RecyclerView) = object : RecyclerView.AdapterDataObserver() {
+    private fun createFileAdapterObserver(recyclerView: RecyclerView) = object : AdapterDataObserver() {
 
         private fun notifyChanged(position: Int) {
             recyclerView.post { if (fileList.isNotEmpty() && position < fileList.count()) notifyItemChanged(position) }
