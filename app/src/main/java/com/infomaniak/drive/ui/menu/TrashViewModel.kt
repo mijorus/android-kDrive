@@ -93,17 +93,7 @@ class TrashViewModel : ViewModel() {
             val apiResponse = ApiRepository.getDriveTrash(driveId, order, cursor)
             when {
                 apiResponse.data.isNullOrEmpty() -> driveTrashResults.postValue(null)
-                apiResponse.cursor == null ->
-                    driveTrashResults.postValue(
-                        FolderFilesResult(
-                            files = apiResponse.data!!,
-                            isComplete = true,
-                            isFirstPage = isFirstPage,
-                            isNewSort = isNewSort,
-                        )
-                    )
-
-                else -> {
+                apiResponse.hasMore -> {
                     driveTrashResults.postValue(
                         FolderFilesResult(
                             files = apiResponse.data!!,
@@ -112,7 +102,17 @@ class TrashViewModel : ViewModel() {
                             isNewSort = isNewSort,
                         )
                     )
-                    recursive(isFirstPage = false, isNewSort = false, cursor = apiResponse.cursor)
+                    recursive(isFirstPage = false, isNewSort = false, cursor = apiResponse.cursor!!)
+                }
+                else -> {
+                    driveTrashResults.postValue(
+                        FolderFilesResult(
+                            files = apiResponse.data!!,
+                            isComplete = true,
+                            isFirstPage = isFirstPage,
+                            isNewSort = isNewSort,
+                        )
+                    )
                 }
             }
         }
