@@ -106,7 +106,7 @@ class GalleryViewModel : ViewModel() {
             null
         } else {
             FileController.storeGalleryDrive(data, isFirstPage)
-            val isComplete = apiResponse.cursor == null
+            val isComplete = !apiResponse.hasMore
             data to isComplete
         }
 
