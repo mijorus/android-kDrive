@@ -114,7 +114,7 @@ class HomeViewModel : ViewModel() {
                     FileController.storeFileActivities(data)
                     LastActivityResult(
                         mergedActivities = mergeAndCleanActivities,
-                        isComplete = apiResponse.cursor == null,
+                        isComplete = !apiResponse.hasMore,
                         isFirstPage = isFirstPage,
                     )
                 }
@@ -168,7 +168,7 @@ class HomeViewModel : ViewModel() {
                 previousActivity.action == currentActivity.action &&
                 previousActivity.fileId == currentActivity.fileId
     }
-    
+
     data class LastActivityResult(
         val mergedActivities: ArrayList<FileActivity>,
         val isComplete: Boolean,
